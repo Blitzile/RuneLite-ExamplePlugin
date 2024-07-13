@@ -6,7 +6,9 @@ import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
+import net.runelite.api.MenuEntry;
 import net.runelite.api.events.GameStateChanged;
+import net.runelite.api.events.MenuOpened;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
@@ -18,6 +20,8 @@ import net.runelite.client.plugins.PluginDescriptor;
 )
 public class ExamplePlugin extends Plugin
 {
+	private static final String COLLECTION_LOG_TARGET = "Collection log";
+
 	@Inject
 	private Client client;
 
@@ -66,33 +70,8 @@ public class ExamplePlugin extends Plugin
 			return;
 		}
 
-		client.createMenuEntry(1)
-				.setOption(COLLECTION_LOG_EXPORT)
-				.setTarget(entryTarget)
-				.setType(MenuAction.RUNELITE)
-				.onClick(e -> {
-					boolean collectionLogSaved = collectionLogManager.saveCollectionLogFile(true);
-					if (collectionLogSaved)
-					{
-						String filePath = collectionLogManager.getExportFilePath();
-						String message = "Collection log exported to " + filePath;
-
-						if (config.sendExportChatMessage())
-						{
-							String chatMessage = new ChatMessageBuilder()
-									.append(ChatColorType.HIGHLIGHT)
-									.append(message)
-									.build();
-
-							chatMessageManager.queue(
-									QueuedMessage.builder()
-											.type(ChatMessageType.CONSOLE)
-											.runeLiteFormattedMessage(chatMessage)
-											.build()
-							);
-						}
-					}
-				});
+		client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "You opened the collection log!", null);
+		
 	}
 
 	@Provides
