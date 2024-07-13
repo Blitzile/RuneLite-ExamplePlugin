@@ -14,6 +14,6 @@ public interface ExampleConfig extends Config
 	)
 	default String greeting()
 	{
-		return "Hello";
+		return "You opened the Collection Log";
 	}
 }

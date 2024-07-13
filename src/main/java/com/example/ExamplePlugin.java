@@ -45,6 +45,56 @@ public class ExamplePlugin extends Plugin
 		}
 	}
 
+	@Subscribe
+	public void onMenuOpened(MenuOpened event)
+	{
+		if (event.getMenuEntries().length < 2)
+		{
+			return;
+		}
+
+		MenuEntry entry = event.getMenuEntries()[1];
+
+		String entryTarget = entry.getTarget();
+		if (entryTarget.isEmpty())
+		{
+			entryTarget = entry.getOption();
+		}
+
+		if (!entryTarget.toLowerCase().endsWith(COLLECTION_LOG_TARGET.toLowerCase()))
+		{
+			return;
+		}
+
+		client.createMenuEntry(1)
+				.setOption(COLLECTION_LOG_EXPORT)
+				.setTarget(entryTarget)
+				.setType(MenuAction.RUNELITE)
+				.onClick(e -> {
+					boolean collectionLogSaved = collectionLogManager.saveCollectionLogFile(true);
+					if (collectionLogSaved)
+					{
+						String filePath = collectionLogManager.getExportFilePath();
+						String message = "Collection log exported to " + filePath;
+
+						if (config.sendExportChatMessage())
+						{
+							String chatMessage = new ChatMessageBuilder()
+									.append(ChatColorType.HIGHLIGHT)
+									.append(message)
+									.build();
+
+							chatMessageManager.queue(
+									QueuedMessage.builder()
+											.type(ChatMessageType.CONSOLE)
+											.runeLiteFormattedMessage(chatMessage)
+											.build()
+							);
+						}
+					}
+				});
+	}
+
 	@Provides
 	ExampleConfig provideConfig(ConfigManager configManager)
 	{
