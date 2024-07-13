@@ -28,7 +28,7 @@ public class ExamplePlugin extends Plugin
 {
 	private static final String COLLECTION_LOG_TARGET = "Collection log";
 	private static final int ADVENTURE_LOG_COLLECTION_LOG_SELECTED_VARBIT_ID = 12061;
-	private final ClientThread clientThread;
+
 
 	@Inject
 	private Client client;
