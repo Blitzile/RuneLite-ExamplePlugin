@@ -18,7 +18,7 @@ import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
-import net.runelite.client.util.Text;
+import net.runelite.client.callback.ClientThread;
 
 @Slf4j
 @PluginDescriptor(
