@@ -98,6 +98,7 @@ public class ExamplePlugin extends Plugin
 	 * Load the current page being viewed in the collection log
 	 * and get/update relevant information contained in the page
 	 */
+	@Subscribe
 	private void getPage()
 	{
 		Widget pageHead = client.getWidget(ComponentID.COLLECTION_LOG_ENTRY_HEADER);
