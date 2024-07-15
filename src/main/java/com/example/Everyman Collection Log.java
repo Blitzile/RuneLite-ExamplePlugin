@@ -116,3 +116,96 @@ public class ExamplePlugin extends Plugin
 		return configManager.getConfig(ExampleConfig.class);
 	}
 }
+
+@ConfigGroup("collectionlog")
+public interface CollectionLogConfig extends Config
+{
+	@ConfigItem(
+			keyName = "hiddenItems",
+			name = "Hidden Items",
+			description = "Comma-separated list of items to hide in the Collection Log",
+			position = 1
+	)
+	default String hiddenItems()
+	{
+		return "";
+	}
+}
+
+
+
+@PluginDescriptor(
+		name = "Collection Log Hider"
+)
+public class CollectionLogHiderPlugin extends Plugin
+{
+	@Inject
+	private Client client;
+
+	@Inject
+	private CollectionLogConfig config;
+
+	@Inject
+	private ClientThread clientThread;
+
+	private List<String> hiddenItemsList;
+
+	@Override
+	protected void startUp() throws Exception
+	{
+		updateHiddenItemsList();
+	}
+
+	@Override
+	protected void shutDown() throws Exception
+	{
+		// Clean up any changes made during startup
+	}
+
+	@Subscribe
+	public void onGameStateChanged(GameStateChanged event)
+	{
+		if (event.getGameState() == GameState.LOGGED_IN)
+		{
+			updateHiddenItemsList();
+		}
+	}
+
+	@Subscribe
+	public void onScriptPostFired(ScriptPostFired event)
+	{
+		if (event.getScriptId() == ScriptID.COLLECTION_DRAW_LIST)
+		{
+			clientThread.invokeLater(this::filterCollectionLogItems);
+		}
+	}
+
+	private void updateHiddenItemsList()
+	{
+		String hiddenItems = config.hiddenItems();
+		hiddenItemsList = Arrays.asList(hiddenItems.split(","))
+				.stream()
+				.map(String::trim)
+				.collect(Collectors.toList());
+	}
+
+	private void filterCollectionLogItems()
+	{
+		Widget collectionLogContainer = client.getWidget(ComponentID.COLLECTION_LOG_CONTAINER);
+		if (collectionLogContainer == null)
+		{
+			return;
+		}
+
+		for (Widget item : collectionLogContainer.getDynamicChildren())
+		{
+			if (hiddenItemsList.contains(Text.removeTags(item.getText())))
+			{
+				item.setHidden(true);
+			}
+		}
+	}
+}
+
+
+

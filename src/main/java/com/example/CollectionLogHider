@@ -1,0 +1,94 @@
+package com.example;
+
+import javax.inject.Inject;
+import lombok.extern.slf4j.Slf4j;
+import net.runelite.api.Client;
+import net.runelite.api.ScriptID;
+import net.runelite.api.events.GameStateChanged;
+import net.runelite.api.events.ScriptPostFired;
+import net.runelite.api.widgets.ComponentID;
+import net.runelite.api.widgets.Widget;
+import net.runelite.client.callback.ClientThread;
+import net.runelite.client.config.ConfigManager;
+import net.runelite.client.eventbus.Subscribe;
+import net.runelite.client.plugins.Plugin;
+import net.runelite.client.plugins.PluginDescriptor;
+import net.runelite.client.config.Config;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Slf4j
+@PluginDescriptor(
+	name = "Collection Log Hider"
+)
+public class CollectionLogHiderPlugin extends Plugin
+{
+	@Inject
+	private Client client;
+
+	@Inject
+	private CollectionLogConfig config;
+
+	@Inject
+	private ClientThread clientThread;
+
+	private List<String> hiddenItemsList;
+
+	@Override
+	protected void startUp() throws Exception
+	{
+		updateHiddenItemsList();
+	}
+
+	@Override
+	protected void shutDown() throws Exception
+	{
+		// Clean up any changes made during startup
+	}
+
+	@Subscribe
+	public void onGameStateChanged(GameStateChanged event)
+	{
+		if (event.getGameState() == GameState.LOGGED_IN)
+		{
+			updateHiddenItemsList();
+		}
+	}
+
+	@Subscribe
+	public void onScriptPostFired(ScriptPostFired event)
+	{
+		if (event.getScriptId() == ScriptID.COLLECTION_DRAW_LIST)
+		{
+			clientThread.invokeLater(this::filterCollectionLogItems);
+		}
+	}
+
+	private void updateHiddenItemsList()
+	{
+		String hiddenItems = config.hiddenItems();
+		hiddenItemsList = Arrays.asList(hiddenItems.split(","))
+			.stream()
+			.map(String::trim)
+			.collect(Collectors.toList());
+	}
+
+	private void filterCollectionLogItems()
+	{
+		Widget collectionLogContainer = client.getWidget(ComponentID.COLLECTION_LOG_CONTAINER);
+		if (collectionLogContainer == null)
+		{
+			return;
+		}
+
+		for (Widget item : collectionLogContainer.getDynamicChildren())
+		{
+			if (hiddenItemsList.contains(Text.removeTags(item.getText())))
+			{
+				item.setHidden(true);
+			}
+		}
+	}
+}
